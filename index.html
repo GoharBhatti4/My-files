@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>File Converter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+      color: #333;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: auto; /* Enable scrollbar for the entire page */
+    }
+
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      width: 100%;
+      max-width: 600px;
+      position: relative;
+      z-index: 2;
+    }
+
+    h1 {
+      font-size: 30px;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    p.instructions {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 30px;
+    }
+
+    .drop-zone {
+      border: 2px dashed #6c7ae0;
+      padding: 30px;
+      border-radius: 15px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, border-color 0.3s ease;
+      font-size: 18px;
+      color: #6c7ae0;
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .drop-zone:hover {
+      background-color: #f7f7f7;
+      border-color: #5a66b0;
+    }
+
+    .upload-input {
+      display: none;
+    }
+
+    .file-preview {
+      margin-top: 15px;
+      font-size: 16px;
+      color: #777;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .file-icon {
+      font-size: 24px;
+      color: #6c7ae0;
+    }
+
+    .btn {
+      background-color: #6c7ae0;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 25px;
+      margin-top: 20px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+
+    .btn:hover {
+      background-color: #5a66b0;
+      transform: scale(1.05);
+    }
+
+    .progress {
+      margin-top: 30px;
+      display: none;
+      text-align: left;
+    }
+
+    .progress-bar-container {
+      background-color: #f3f4f6;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 15px;
+      width: 0;
+      background-color: #6c7ae0;
+      border-radius: 10px;
+      transition: width 0.3s ease;
+    }
+
+    .progress-text {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #333;
+    }
+
+    /* Dropdown styles */
+    .file-format-dropdown {
+      margin-top: 20px;
+      font-size: 16px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      width: 100%;
+      max-width: 300px;
+    }
+
+    /* Background animation */
+    .background {
+      position: absolute;
+      width: 150%;
+      height: 150%;
+      top: -50%;
+      left: -50%;
+      z-index: 1;
+      background: radial-gradient(circle, rgba(116, 235, 213, 0.5), rgba(172, 182, 229, 0.5));
+      animation: moveBackground 10s infinite linear;
+    }
+
+    @keyframes moveBackground {
+      0% {
+        transform: translate(0, 0);
+      }
+      50% {
+        transform: translate(20px, 20px);
+      }
+      100% {
+        transform: translate(0, 0);
+      }
+    }
+
+    /* Error message */
+    .error-message {
+      color: red;
+      font-size: 14px;
+      display: none;
+    }
+
+    /* Conversion criteria section */
+    .criteria {
+      margin-top: 30px;
+      font-size: 14px;
+      text-align: left;
+      color: #555;
+    }
+
+    .criteria ul {
+      list-style: disc;
+      padding-left: 20px;
+    }
+
+    .criteria li {
+      margin-bottom: 5px;
+    }
+
+    /* Style for the download page */
+    .download-container {
+      text-align: center;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      background: white;
+      display: none; /* Initially hidden */
+    }
+
+    .back-btn {
+      margin-top: 20px;
+      background-color: #6c7ae0;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+
+    .back-btn:hover {
+      background-color: #5a66b0;
+      transform: scale(1.05);
+    }
+
+  </style>
+</head>
+<body>
+  <div class="background"></div>
+
+  <div class="container">
+    <h1>Convert Your Files Effortlessly</h1>
+    <p class="instructions">Drag & drop your files below or click to upload. Then select the output format and click "Convert File".</p>
+
+    <div class="drop-zone" id="dropZone">
+      Drag & Drop Your Files or Click Here to Upload
+    </div>
+    
+    <input type="file" id="fileInput" class="upload-input" />
+    
+    <div class="file-preview" id="filePreview" style="display: none;">
+      <span class="file-icon">📄</span>
+      <span class="file-info" id="fileInfo"></span>
+    </div>
+
+    <select class="file-format-dropdown" id="fileFormat">
+      <option value="pdf">Convert to PDF</option>
+      <option value="docx">Convert to DOCX</option>
+      <option value="jpg">Convert to JPG</option>
+    </select>
+
+    <button class="btn" onclick="uploadFile()">Convert File</button>
+    <div class="error-message" id="errorMessage"></div>
+
+    <div class="progress" id="progress">
+      <div class="progress-bar-container">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      <div class="progress-text" id="progressText">0%</div>
+    </div>
+
+    <!-- Conversion Criteria Section -->
+    <div class="criteria">
+      <h3>Conversion Criteria:</h3>
+      <ul>
+        <li>Supported file types: PDF, DOCX, PNG, JPG.</li>
+        <li>Maximum file size: 50MB.</li>
+        <li>Select output format using the dropdown menu.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Download Page (Initially hidden) -->
+  <div id="downloadPage" class="download-container">
+    <h1>File Converted Successfully!</h1>
+    <a id="downloadLink" class="btn" href="#" download>Download Converted File</a>
+    <button class="back-btn" onclick="goBack()">Go Back</button>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const filePreview = document.getElementById('filePreview');
+    const dropZone = document.getElementById('dropZone');
+    const errorMessage = document.getElementById('errorMessage');
+    const fileFormatDropdown = document.getElementById('fileFormat');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const progress = document.getElementById('progress');
+    const downloadPage = document.getElementById('downloadPage');
+    const downloadLink = document.getElementById('downloadLink');
+    const container = document.querySelector('.container');
+
+    // Show selected file info on change
+    fileInput.addEventListener('change', function () {
+      const file = fileInput.files[0];
+      if (file) {
+        filePreview.style.display = 'flex';
+        fileInfo.textContent = `File: ${file.name}, Size: ${Math.round(file.size / 1024)} KB`;
+      } else {
+        filePreview.style.display = 'none';
+      }
+    });
+
+    // Handle drag-and-drop
+    dropZone.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      dropZone.style.backgroundColor = '#f0f0f0';
+    });
+
+    dropZone.addEventListener('dragleave', function() {
+      dropZone.style.backgroundColor = '';
+    });
+
+    dropZone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      dropZone.style.backgroundColor = '';
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        fileInput.files = files; // Update input with dropped files
+        fileInput.dispatchEvent(new Event('change')); // Trigger change event
+      }
+    });
+
+    // Handle click-to-upload
+    dropZone.addEventListener('click', function() {
+      fileInput.click();
+    });
+
+    // Function to upload the file
+    function uploadFile() {
+      const file = fileInput.files[0];
+      const format = fileFormatDropdown.value;
+      if (!file) {
+        errorMessage.textContent = 'Please select a file to convert.';
+        errorMessage.style.display = 'block';
+        return;
+      }
+
+      if (file.size > 50 * 1024 * 1024) {
+        errorMessage.textContent = 'File size exceeds the 50MB limit.';
+        errorMessage.style.display = 'block';
+        return;
+      }
+
+      errorMessage.style.display = 'none';
+
+      progress.style.display = 'block';
+      let progressValue = 0;
+
+      const interval = setInterval(() => {
+        progressValue += 10;
+        progressBar.style.width = `${progressValue}%`;
+        progressText.textContent = `${progressValue}%`;
+        if (progressValue >= 100) {
+          clearInterval(interval);
+          // Simulate a file download URL (Replace with your backend URL or logic)
+          downloadLink.href = 'path/to/converted-file.' + format;
+          downloadPage.style.display = 'block';
+          container.style.display = 'none'; // Hide the original container
+        }
+      }, 200);
+    }
+
+    // Function to go back to the main page
+    function goBack() {
+      downloadPage.style.display = 'none';
+      container.style.display = 'block';
+    }
+  </script>
+</body>
+</html>
