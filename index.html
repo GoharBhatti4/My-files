@@ -1,358 +1,480 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>File Converter</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
-      color: #333;
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      overflow: auto; /* Enable scrollbar for the entire page */
-    }
-
-    .container {
-      background: white;
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-      text-align: center;
-      width: 100%;
-      max-width: 600px;
-      position: relative;
-      z-index: 2;
-    }
-
-    h1 {
-      font-size: 30px;
-      margin-bottom: 20px;
-      color: #333;
-    }
-
-    p.instructions {
-      font-size: 16px;
-      color: #666;
-      margin-bottom: 30px;
-    }
-
-    .drop-zone {
-      border: 2px dashed #6c7ae0;
-      padding: 30px;
-      border-radius: 15px;
-      cursor: pointer;
-      transition: background-color 0.3s ease, border-color 0.3s ease;
-      font-size: 18px;
-      color: #6c7ae0;
-      position: relative;
-      margin-bottom: 20px;
-    }
-
-    .drop-zone:hover {
-      background-color: #f7f7f7;
-      border-color: #5a66b0;
-    }
-
-    .upload-input {
-      display: none;
-    }
-
-    .file-preview {
-      margin-top: 15px;
-      font-size: 16px;
-      color: #777;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .file-icon {
-      font-size: 24px;
-      color: #6c7ae0;
-    }
-
-    .btn {
-      background-color: #6c7ae0;
-      color: white;
-      padding: 12px 24px;
-      border: none;
-      border-radius: 25px;
-      margin-top: 20px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: 600;
-      transition: background-color 0.3s ease, transform 0.3s ease;
-    }
-
-    .btn:hover {
-      background-color: #5a66b0;
-      transform: scale(1.05);
-    }
-
-    .progress {
-      margin-top: 30px;
-      display: none;
-      text-align: left;
-    }
-
-    .progress-bar-container {
-      background-color: #f3f4f6;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    .progress-bar {
-      height: 15px;
-      width: 0;
-      background-color: #6c7ae0;
-      border-radius: 10px;
-      transition: width 0.3s ease;
-    }
-
-    .progress-text {
-      margin-top: 10px;
-      font-size: 14px;
-      color: #333;
-    }
-
-    /* Dropdown styles */
-    .file-format-dropdown {
-      margin-top: 20px;
-      font-size: 16px;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      width: 100%;
-      max-width: 300px;
-    }
-
-    /* Background animation */
-    .background {
-      position: absolute;
-      width: 150%;
-      height: 150%;
-      top: -50%;
-      left: -50%;
-      z-index: 1;
-      background: radial-gradient(circle, rgba(116, 235, 213, 0.5), rgba(172, 182, 229, 0.5));
-      animation: moveBackground 10s infinite linear;
-    }
-
-    @keyframes moveBackground {
-      0% {
-        transform: translate(0, 0);
-      }
-      50% {
-        transform: translate(20px, 20px);
-      }
-      100% {
-        transform: translate(0, 0);
-      }
-    }
-
-    /* Error message */
-    .error-message {
-      color: red;
-      font-size: 14px;
-      display: none;
-    }
-
-    /* Conversion criteria section */
-    .criteria {
-      margin-top: 30px;
-      font-size: 14px;
-      text-align: left;
-      color: #555;
-    }
-
-    .criteria ul {
-      list-style: disc;
-      padding-left: 20px;
-    }
-
-    .criteria li {
-      margin-bottom: 5px;
-    }
-
-    /* Style for the download page */
-    .download-container {
-      text-align: center;
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-      background: white;
-      display: none; /* Initially hidden */
-    }
-
-    .back-btn {
-      margin-top: 20px;
-      background-color: #6c7ae0;
-      color: white;
-      padding: 12px 24px;
-      border: none;
-      border-radius: 25px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: 600;
-      transition: background-color 0.3s ease, transform 0.3s ease;
-    }
-
-    .back-btn:hover {
-      background-color: #5a66b0;
-      transform: scale(1.05);
-    }
-
-  </style>
-</head>
-<body>
-  <div class="background"></div>
-
-  <div class="container">
-    <h1>Convert Your Files Effortlessly</h1>
-    <p class="instructions">Drag & drop your files below or click to upload. Then select the output format and click "Convert File".</p>
-
-    <div class="drop-zone" id="dropZone">
-      Drag & Drop Your Files or Click Here to Upload
-    </div>
-    
-    <input type="file" id="fileInput" class="upload-input" />
-    
-    <div class="file-preview" id="filePreview" style="display: none;">
-      <span class="file-icon">📄</span>
-      <span class="file-info" id="fileInfo"></span>
-    </div>
-
-    <select class="file-format-dropdown" id="fileFormat">
-      <option value="pdf">Convert to PDF</option>
-      <option value="docx">Convert to DOCX</option>
-      <option value="jpg">Convert to JPG</option>
-    </select>
-
-    <button class="btn" onclick="uploadFile()">Convert File</button>
-    <div class="error-message" id="errorMessage"></div>
-
-    <div class="progress" id="progress">
-      <div class="progress-bar-container">
-        <div class="progress-bar" id="progressBar"></div>
-      </div>
-      <div class="progress-text" id="progressText">0%</div>
-    </div>
-
-    <!-- Conversion Criteria Section -->
-    <div class="criteria">
-      <h3>Conversion Criteria:</h3>
-      <ul>
-        <li>Supported file types: PDF, DOCX, PNG, JPG.</li>
-        <li>Maximum file size: 50MB.</li>
-        <li>Select output format using the dropdown menu.</li>
-      </ul>
-    </div>
-  </div>
-
-  <!-- Download Page (Initially hidden) -->
-  <div id="downloadPage" class="download-container">
-    <h1>File Converted Successfully!</h1>
-    <a id="downloadLink" class="btn" href="#" download>Download Converted File</a>
-    <button class="back-btn" onclick="goBack()">Go Back</button>
-  </div>
-
-  <script>
-    const fileInput = document.getElementById('fileInput');
-    const fileInfo = document.getElementById('fileInfo');
-    const filePreview = document.getElementById('filePreview');
-    const dropZone = document.getElementById('dropZone');
-    const errorMessage = document.getElementById('errorMessage');
-    const fileFormatDropdown = document.getElementById('fileFormat');
-    const progressBar = document.getElementById('progressBar');
-    const progressText = document.getElementById('progressText');
-    const progress = document.getElementById('progress');
-    const downloadPage = document.getElementById('downloadPage');
-    const downloadLink = document.getElementById('downloadLink');
-    const container = document.querySelector('.container');
-
-    // Show selected file info on change
-    fileInput.addEventListener('change', function () {
-      const file = fileInput.files[0];
-      if (file) {
-        filePreview.style.display = 'flex';
-        fileInfo.textContent = `File: ${file.name}, Size: ${Math.round(file.size / 1024)} KB`;
-      } else {
-        filePreview.style.display = 'none';
-      }
-    });
-
-    // Handle drag-and-drop
-    dropZone.addEventListener('dragover', function(e) {
-      e.preventDefault();
-      dropZone.style.backgroundColor = '#f0f0f0';
-    });
-
-    dropZone.addEventListener('dragleave', function() {
-      dropZone.style.backgroundColor = '';
-    });
-
-    dropZone.addEventListener('drop', function(e) {
-      e.preventDefault();
-      dropZone.style.backgroundColor = '';
-      const files = e.dataTransfer.files;
-      if (files.length > 0) {
-        fileInput.files = files; // Update input with dropped files
-        fileInput.dispatchEvent(new Event('change')); // Trigger change event
-      }
-    });
-
-    // Handle click-to-upload
-    dropZone.addEventListener('click', function() {
-      fileInput.click();
-    });
-
-    // Function to upload the file
-    function uploadFile() {
-      const file = fileInput.files[0];
-      const format = fileFormatDropdown.value;
-      if (!file) {
-        errorMessage.textContent = 'Please select a file to convert.';
-        errorMessage.style.display = 'block';
-        return;
-      }
-
-      if (file.size > 50 * 1024 * 1024) {
-        errorMessage.textContent = 'File size exceeds the 50MB limit.';
-        errorMessage.style.display = 'block';
-        return;
-      }
-
-      errorMessage.style.display = 'none';
-
-      progress.style.display = 'block';
-      let progressValue = 0;
-
-      const interval = setInterval(() => {
-        progressValue += 10;
-        progressBar.style.width = `${progressValue}%`;
-        progressText.textContent = `${progressValue}%`;
-        if (progressValue >= 100) {
-          clearInterval(interval);
-          // Simulate a file download URL (Replace with your backend URL or logic)
-          downloadLink.href = 'path/to/converted-file.' + format;
-          downloadPage.style.display = 'block';
-          container.style.display = 'none'; // Hide the original container
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="BoltConvert is an online file converter offering secure, lightning-fast file conversions for various formats.">
+    <meta name="keywords" content="file converter, online converter, PDF to DOC, MP4 to MP3, file format conversion, BoltConvert">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta property="og:title" content="BoltConvert - Online File Converter">
+    <meta property="og:description" content="Secure and fast file conversions for multiple formats.">
+    <meta property="og:image" content="https://boltconvert.com/og-image.jpg">
+    <meta property="og:url" content="https://boltconvert.com">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://boltconvert.com">
+    <title>BoltConvert.online</title>
+    <link rel="icon" href="https://boltconvert.com/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-      }, 200);
-    }
 
-    // Function to go back to the main page
-    function goBack() {
-      downloadPage.style.display = 'none';
-      container.style.display = 'block';
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1e1e2f, #232634 60%);
+            color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        header {
+            width: 100%;
+            padding: 20px 0;
+            background-color: #232634;
+            color: #4dd0e1;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        header h1 {
+            font-size: 3rem;
+            text-shadow: 2px 2px 6px rgba(255, 255, 255, 0.5);
+            animation: slideIn 1s ease-in-out;
+            display: inline-block;
+            position: relative;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-100%);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .domain {
+            font-size: 0.7rem;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            transform: translateY(-50%);
+            display: block;
+            
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px;
+            padding: 30px;
+            background-color: #e6e6e6;
+            border-radius: 15px;
+            text-align: center;
+             box-shadow: 0px 8px 16px rgba(0, 0, 0, 0);
+            margin-top: 20px;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        p {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+       .file-dropzone {
+  border: 2px dashed #4dd0e1;
+  padding: 30px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  background-color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Glow effect for the file drop zone */
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 10px rgba(77, 208, 225, 0.6), 0 0 20px rgba(77, 208, 225, 0.4), 0 0 30px rgba(77, 208, 225, 0.2);
     }
-  </script>
+    50% {
+        box-shadow: 0 0 20px rgba(77, 208, 225, 1), 0 0 30px rgba(77, 208, 225, 0.6), 0 0 40px rgba(77, 208, 225, 0.4);
+    }
+    100% {
+        box-shadow: 0 0 10px rgba(77, 208, 225, 0.6), 0 0 20px rgba(77, 208, 225, 0.4), 0 0 30px rgba(77, 208, 225, 0.2);
+    }
+}
+
+.file-dropzone {
+    border: 2px dashed #4dd0e1;
+    padding: 30px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    background-color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: pulse 1.5s infinite; /* Add the pulsing effect */
+}
+
+
+        .file-dropzone p {
+            font-size: 1.2rem;
+            color: #4dd0e1;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .convert-section {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 20px;
+        }
+        
+        .convert-options {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 15px;
+        }
+        
+       .convert-options select {
+    padding: 10px;
+    border: 2px solid #4dd0e1;
+    border-radius: 8px;
+    font-size: 1rem;
+    width: 150px;
+    background-color: #232634;
+    color: #f0f0f0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.convert-options select:hover {
+    border-color: #ff9800;
+    background-color: #333;
+    
+}
+
+.convert-options select:focus {
+    outline: none;
+    box-shadow: 0 0 10px #4dd0e1, 0 0 20px rgba(77, 208, 225, 0.5);
+}
+
+        .convert-btn {
+            background-color: #4dd0e1;
+            color: #232634;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            display: none;
+            animation: fadeIn 1s ease-in-out;
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.3);
+           
+            }
+            
+            @keyframes fadeIn {
+              from {
+                opacity: 0;
+                transform: scale(0.9);
+              }
+            
+              to {
+                opacity: 1;
+                transform: scale(1);
+              }
+            }
+        
+
+        .convert-btn:hover {
+            background-color: #ff9800;
+            transform: translateY(-5px) scale(1.05);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #eaeaea;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .progress {
+            width: 0;
+            height: 100%;
+            background-color: #4dd0e1;
+            border-radius: 10px;
+            transition: width 0.2s ease;
+        }
+
+        /* New section to display file information */
+        #file-info {
+            margin-top: 20px;
+            font-size: 1.1rem;
+            color: #333;
+        }
+
+        /* Style for the file type */
+        .file-type {
+            color: #4dd0e1;
+            font-weight: bold;
+        }
+
+        /* New Layout for post-conversion */
+        .new-layout {
+            text-align: center;
+            animation: fadeIn 1s ease-in-out;
+        
+          
+        }
+
+        .new-layout button {
+            background-color: #4dd0e1;
+            color: #232634;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 10px;
+            transition: background-color 1.3s ease;
+            
+        }
+
+        .new-layout button:hover {
+            background-color: #ff9800;
+        }
+       
+
+          .convert-options select {
+    transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
+}
+
+.convert-options select:focus {
+    transform: scale(1.05);
+    background-color: #333;
+}
+
+        
+        
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>BoltConvert⚡<span class="domain">.online</span></h1>
+    </header>
+
+    <div class="container">
+        <p>Convert Simple, fast, and secure!</p>
+
+        <div class="file-dropzone" id="dropzone">
+          <p>Drag and drop your file here or click to upload</p>
+          <input type="file" id="file-input">
+        </div>
+
+
+        <div class="convert-section">
+            <div class="convert-options">
+                <select id="file-format">
+                    <option value="">Select format</option>
+                    <option value="pdf">PDF</option>
+                    <option value="doc">DOC</option>
+                    <option value="mp3">MP3</option>
+                    <option value="mp4">MP4</option>
+                </select>
+            </div>
+
+
+
+
+
+            <button class="convert-btn" id="convert-btn">Convert⚡</button>
+        </div>
+
+        <div class="progress-bar" id="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
+        
+        
+        
+        <!-- Display file name and type -->
+        <div id="file-info"></div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('file-input');
+        const fileFormat = document.getElementById('file-format');
+        const convertBtn = document.getElementById('convert-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const progress = document.getElementById('progress');
+        const fileInfo = document.getElementById('file-info');
+        const container = document.querySelector('.container');
+
+        document.getElementById('dropzone').addEventListener('click', function () {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', displayFileInfo);
+        fileInput.addEventListener('change', checkFileAndFormat);
+        fileFormat.addEventListener('change', checkFileAndFormat);
+
+        function displayFileInfo(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const fullFileName = file.name;
+        const maxLength = window.innerWidth < 768 ? 15 : 25;
+        const truncatedFileName = fullFileName.length > maxLength ? fullFileName.substring(0, maxLength) + '...' : fullFileName;
+
+        // Get the file extension
+        const fileExtension = fullFileName.split('.').pop().toLowerCase();
+
+        // Display the file name and extension
+        fileInfo.innerHTML = `
+            <span class="truncated-file-name" data-full-name="${fullFileName}">${truncatedFileName}</span>
+            <span class="file-type">${fileExtension}</span>`;
+    } else {
+        fileInfo.textContent = '';
+    }
+}
+
+        
+        function checkFileAndFormat() {
+          const file = fileInput.files[0];
+          const format = fileFormat.value;
+        
+          if (file && format) {
+            convertBtn.style.display = 'block';
+          } else {
+            convertBtn.style.display = 'none';
+          }
+        }
+
+        convertBtn.addEventListener('click', handleConvert);
+
+        function handleConvert() {
+            const file = fileInput.files[0];
+            const format = fileFormat.value;
+
+            if (!file) {
+                alert('Please select a file to convert.');
+                return;
+            }
+
+            progressBar.style.display = 'block';
+
+            simulateFileConversion(file, format);
+        }
+
+        function simulateFileConversion(file, format) {
+            let progressValue = 0;
+            const interval = setInterval(() => {
+                progressValue += 10;
+                progress.style.width = `${progressValue}%`;
+
+                if (progressValue >= 100) {
+                    clearInterval(interval);
+                    progressBar.style.display = 'none';
+                    updateLayoutForDownload();
+                }
+            }, 500);
+        }
+
+        function updateLayoutForDownload() {
+    container.innerHTML = `
+        <div class="new-layout">
+            <h2 style="color: #ff9800;">Conversion Complete!</h2> <!-- Change text color here -->
+            <button onclick="downloadFile()">Download File</button>
+            <button onclick="startNewConversion()">Convert Another File</button>
+        </div>
+    `;
+}
+
+
+        function downloadFile() {
+            alert('Downloading file...');
+        }
+
+        function startNewConversion() {
+            location.reload();
+        }
+        
+        
+        
+        
+        fileInput.addEventListener('change', displayFileInfo);
+fileInput.addEventListener('change', checkFileAndFormat);
+fileInput.addEventListener('change', toggleGlowEffect); // Add this line
+fileFormat.addEventListener('change', checkFileAndFormat);
+
+function toggleGlowEffect() {
+    const file = fileInput.files[0];
+    const dropzone = document.getElementById('dropzone');
+
+    if (file) {
+        dropzone.classList.remove('glowing'); // Remove glowing effect when a file is uploaded
+    } else {
+        dropzone.classList.add('glowing'); // Add glowing effect when no file is uploaded
+    }
+}
+
+
+
+function toggleGlowEffect() {
+    const file = fileInput.files[0];
+    const dropzone = document.getElementById('dropzone');
+
+    if (file) {
+        dropzone.style.animation = 'none'; // Remove the pulsing effect when a file is uploaded
+        dropzone.classList.remove('glowing'); // Ensure class is removed
+    } else {
+        dropzone.style.animation = 'pulse 1.5s infinite'; // Add the pulsing effect when no file is uploaded
+        dropzone.classList.add('glowing'); // Ensure class is added
+    }
+}
+
+
+
+    </script>
 </body>
+
 </html>
